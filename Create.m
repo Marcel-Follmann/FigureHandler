@@ -1,0 +1,281 @@
+classdef Create < handle
+	%UNTITLED Summary of this class goes here
+	%   Detailed explanation goes here
+
+	properties (Access = private)
+		colorList; 
+		lineStyleList;
+		paramListPdf; 
+		figureListPdf;
+		paramListEmf;
+		figureListEmf;
+		interpreter;
+		savePath;
+	end
+
+	methods (Access = public)
+		function obj = Create(params)
+			arguments
+				params.colorList = ["#00934B", "#D37611", "#005287"];
+				params.lineStyleList = ['-x'];
+				params.interpreter = "latex";
+				params.savePath (1,:) string {mustBeFolder} = " "
+			end
+			
+			set(groot, 'defaultTextInterpreter','latex')
+			obj.colorList = flip(params.colorList);
+			obj.lineStyleList = params.lineStyleList;
+			obj.interpreter = params.interpreter;
+			obj.savePath = params.savePath;
+			% if isnan(params.savePath)
+			% 	obj.savePath = obj.SelectSavePath();
+			% end
+		end
+
+		function fig = PreparePdf(obj, fig, params)
+			arguments
+				obj,
+				fig,
+				params.width = 8.8, 
+				params.height = 8.8/1.618,
+				params.font = "Times New Roman";
+				params.fontSize = 8,
+				params.lineWidth = 1.5,
+				params.markerSize = 3,
+				params.colorList = [],
+			end
+			
+			if ~isempty(params.colorList)
+				obj.colorList = params.colorList;
+			end
+
+			fig = obj.FormatFigure(fig, params);
+			obj.figureListPdf = [obj.figureListPdf, fig];		
+			obj.paramListPdf = [obj.paramListPdf, params];
+		end
+
+		function fig = PrepareEmf(obj, fig, params)
+			arguments
+				obj,
+				fig,
+				params.width = 31.56,
+				params.height = 14.41, 
+				params.font = "Arial";
+				params.fontSize = 20,
+				params.lineWidth = 3,
+				params.markerSize = 8,
+				params.colorList = [],
+			end
+
+			if ~isempty(params.colorList)
+				obj.colorList = params.colorList;
+			end
+
+			fig = obj.FormatFigure(fig, params);
+			obj.figureListEmf = [obj.figureListEmf, fig];
+			obj.paramListEmf = [obj.paramListEmf, params];
+		end
+
+		function GenerateOutputs(obj, options)
+			arguments
+				obj, 
+				options.Symmetrical = false
+			end
+			obj.NormalizeSize(obj.figureListEmf, obj.paramListEmf, options.Symmetrical);
+			for i = 1:numel(obj.figureListEmf)
+				% Prepare Save Path
+				currentFigure = obj.figureListEmf(i);
+				figureName = regexprep(regexprep(lower(get(currentFigure,'Name')),' ', '_'),'-','_');
+				figurePath = strcat(obj.savePath,figureName);
+
+				% Generate Rectangle for propper cropping
+				set(currentFigure,'Units', 'normalized');
+				rect = annotation(currentFigure, 'rectangle',[0 0 1 1],'Color','w', 'LineWidth',1);
+
+				saveas(currentFigure, strcat(figurePath,'.emf'), 'meta');
+
+				delete(rect);
+			end
+
+			obj.NormalizeSize(obj.figureListPdf, obj.paramListPdf, options.Symmetrical);
+			for i = 1:numel(obj.figureListPdf)
+				% Prepare Save Path
+				currentFigure = obj.figureListPdf(i);
+				figureName = regexprep(regexprep(lower(get(currentFigure,'Name')),' ', '_'),'-','_');
+				figurePath = strcat(obj.savePath,figureName);
+
+				% Generate Rectangle for propper cropping
+				set(currentFigure,'Units', 'normalized');
+				rect = annotation(currentFigure, 'rectangle',[0 0 1 1],'Color','w', 'LineWidth',1);
+
+				exportgraphics(currentFigure, strcat(figurePath,'.pdf'), 'ContentType','vector','BackgroundColor','white');
+			
+				delete(rect);
+			end
+		end
+
+	end
+
+	methods (Access = private)
+		function figure = FormatFigure(obj, figure, params)
+			arguments
+				obj,
+				figure,
+				params,
+			end
+
+			function SetAll(figure, property, value)
+				objects = findall(figure, '-property', property);
+				set(objects, property, value);
+			end
+			
+			set(figure, "Color", "w");
+
+			SetAll(figure, 'Units', 'Points');
+			SetAll(figure, 'FontSize', params.fontSize);
+			SetAll(figure, 'FontName', params.font);
+			SetAll(figure, 'Interpreter', obj.interpreter);
+			SetAll(figure, 'TickLabelInterpreter', obj.interpreter);
+			SetAll(figure, 'ClippingStyle', 'rectangle');
+			SetAll(figure, 'XMinorTick', 'on');
+			SetAll(figure, 'YMinorTick', 'on');
+			SetAll(figure, 'YLimitMethod', 'padded');
+			SetAll(figure, 'XLimitMethod', 'tight');
+			SetAll(figure, 'AlignVertexCenters', 'on');
+
+			% Set line color & line style
+			lines = findall(figure,'Type', 'Line');
+			axes = findall(figure,'Type', 'Axes');
+			numberOfLines = numel(lines);
+
+			colorList = obj.CreateColorList(numberOfLines);
+			for i = 1:numberOfLines
+				set(lines(i), 'Color', hex2rgb(colorList(i)));
+				set(lines(i), 'Linewidth', params.lineWidth);
+				set(lines(i), 'MarkerSize', params.markerSize);
+	
+				if(lines(i).XData(end) == axes.XLim(end))
+					lines(i).MarkerIndices(end) = [];
+				end
+
+				if(lines(i).XData(1) == axes.XLim(1))
+					lines(i).MarkerIndices(1) = [];
+				end
+			end
+
+			
+
+			
+		end
+
+		function colorList = CreateColorList(obj, listLength)
+			% Calculate number of complete iterates
+			paletteLength = numel(obj.colorList);
+			shadingIterates = ceil(listLength / paletteLength);
+
+			% Calculate shading step size
+			maximalShadingFactor = .75; % 0: no shading | 1: full shade
+			shadingStepFactor = maximalShadingFactor / shadingIterates;
+			
+			% Iterate over palette
+			colorList = strings(7, listLength);
+			for i = 1:listLength
+				iteration = ceil(i/paletteLength);
+				paletteIndex = mod(i-1,paletteLength)+1;
+				baseColor = hex2rgb(obj.colorList(paletteIndex));
+
+				% Increase shading with each new iterate
+				shading = shadingStepFactor * (iteration-1);
+				rgbShaded = baseColor * (1 - shading);
+				colorList(i) = rgb2hex(rgbShaded);
+			end
+		end
+	
+		function NormalizeSize(obj, figList, paramList, makeSymmetric)
+			% Go through all figures and find the minimum required space for
+			% all
+			numberOfFigures = numel(figList);
+			margins = zeros(1, 4);
+			for i = 1:numberOfFigures
+				currentFigure = figList(i);
+				currentParams = paramList(i);
+				currentMargins = obj.ExtractMargins(currentFigure, currentParams);
+				margins = max([margins; currentMargins]);
+			end
+
+			if makeSymmetric
+				margins(1) = max([margins(1), margins(3)]);
+				margins(3) = margins(1);
+			end
+
+			% Set all figures for this minimum required space
+			for i = 1:numberOfFigures
+				currentFigure = figList(i);
+				currentAxes = findall(currentFigure, "Type", "Axes");
+				currentParams = paramList(i);
+
+				set(currentFigure,'Units', 'centimeters');
+				currentFigure.Position = [currentFigure.Position(1), ...
+					currentFigure.Position(2), ...
+					currentParams.width, currentParams.height];
+
+				set(currentAxes, 'Units', 'centimeters');
+				currentAxes.InnerPosition = [margins(1), margins(2), ...
+					currentParams.width - margins(1) - margins(3),...
+					currentParams.height - margins(2) - margins(4)];
+
+				LgndObj = findall(currentFigure, 'Type', 'Legend');
+				if numel(LgndObj) > 0
+					legend(currentAxes,"Location", LgndObj.Location);
+				end
+			end
+		end
+
+		function savePath = SelectSavePath(obj)
+			currentPath = cd; 
+			newPath = uigetdir(currentPath);
+			savePath = erase(newPath, currentPath)+"\";
+			savePath = eraseBetween(savePath,1,1);
+			clipboard('copy', "'" +savePath+"'");
+			fprintf("Copied Path:\n'%s'\ninto clipboard.\n\nPlease insert into constructor:\n... = FigureHandler(...,'savePath', '%s');\n", savePath, savePath);
+		end
+
+		function margins = ExtractMargins(obj, figureObj, params)
+			% Returns the required figure margins as [left, bottom, right, top] in
+			% centimeters.
+
+			pointInCentimeter = 2.54/72;
+			
+			axesObj = findall(figureObj, 'Type', 'Axes');
+			% Compute left & bottom margins from labels
+			set(axesObj, 'Units','centimeters');
+			set(axesObj.XLabel, 'Units','centimeters');
+			set(axesObj.YLabel, 'Units','centimeters');
+
+			marginLeft = abs(axesObj.YLabel.Extent(1));
+			marginBottom = abs(axesObj.XLabel.Extent(2));
+
+			% Compute right & top margins from ticks
+			marginRight = 0;
+			if ~isempty(axesObj.XTickLabel)
+				textObj = text(0,0, axesObj.XTickLabel(end), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+				marginRight = textObj.Extent(3)/2;
+				delete(textObj);
+			end
+
+			marginTop = 0;
+			if ~isempty(axesObj.YTickLabel)
+				textObj = text(0,0, axesObj.YTickLabel(end), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+				marginTop = textObj.Extent(4)/2;
+				delete(textObj);
+			end
+
+			baseline = 3*pointInCentimeter;
+			margins = [marginLeft, marginBottom, marginRight, marginTop] + baseline;
+		end
+	end
+end
+
+
+
+
