@@ -305,7 +305,7 @@ classdef Create < handle
                 textObj1 = text(0,0, cbObj.TickLabels(idx), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
                 textObj2 = text(0,0, cbObj.Label.String, 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
                 marginRight = textObj1.Extent(3);
-                marginRight = marginRight + textObj2.Extent(3)/2;
+                marginRight = marginRight + textObj2.Extent(4);
                 delete(textObj1);
 			    delete(textObj2);
             else
