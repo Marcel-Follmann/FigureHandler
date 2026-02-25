@@ -9,6 +9,8 @@ classdef Create < handle
 		figureListPdf;
 		paramListEmf;
 		figureListEmf;
+        paramListSvg;
+		figureListSvg;
 		interpreter;
 		savePath;
 	end
@@ -31,6 +33,28 @@ classdef Create < handle
 			% 	obj.savePath = obj.SelectSavePath();
 			% end
 		end
+
+        function PrepareSvg(obj, fig, params)
+            arguments
+				obj,
+				fig,
+				params.width = 31.56,
+				params.height = 14.41, 
+				params.font = "Arial";
+				params.fontSize = 20,
+				params.lineWidth = 3,
+				params.markerSize = 8,
+				params.colorList = [],
+			end
+
+			if ~isempty(params.colorList)
+				obj.colorList = params.colorList;
+			end
+
+			fig = obj.FormatFigure(fig, params);
+			obj.figureListSvg = [obj.figureListSvg, fig];
+			obj.paramListSvg = [obj.paramListSvg, params];
+        end
 
 		function fig = PreparePdf(obj, fig, params)
 			arguments
@@ -109,6 +133,22 @@ classdef Create < handle
 				rect = annotation(currentFigure, 'rectangle',[0 0 1 1],'Color','w', 'LineWidth',1);
 
 				exportgraphics(currentFigure, strcat(figurePath,'.pdf'), 'ContentType','vector','BackgroundColor','white');
+			
+				delete(rect);
+            end
+
+            obj.NormalizeSize(obj.figureListSvg, obj.paramListSvg, options.Symmetrical);
+			for i = 1:numel(obj.figureListSvg)
+				% Prepare Save Path
+				currentFigure = obj.figureListSvg(i);
+				figureName = regexprep(regexprep(lower(get(currentFigure,'Name')),' ', '_'),'-','_');
+				figurePath = strcat(obj.savePath,figureName);
+
+				% Generate Rectangle for propper cropping
+				set(currentFigure,'Units', 'normalized');
+				rect = annotation(currentFigure, 'rectangle',[0 0 1 1],'Color','w', 'LineWidth',1);
+
+				exportgraphics(currentFigure, strcat(figurePath,'.svg'), 'ContentType','vector','BackgroundColor','white');
 			
 				delete(rect);
 			end
@@ -247,7 +287,9 @@ classdef Create < handle
 			pointInCentimeter = 2.54/72;
 			
 			axesObj = findall(figureObj, 'Type', 'Axes');
+            cbObj = findall(figureObj, 'Type', 'ColorBar');
 			% Compute left & bottom margins from labels
+            
 			set(axesObj, 'Units','centimeters');
 			set(axesObj.XLabel, 'Units','centimeters');
 			set(axesObj.YLabel, 'Units','centimeters');
@@ -256,12 +298,23 @@ classdef Create < handle
 			marginBottom = abs(axesObj.XLabel.Extent(2));
 
 			% Compute right & top margins from ticks
-			marginRight = 0;
-			if ~isempty(axesObj.XTickLabel)
-				textObj = text(0,0, axesObj.XTickLabel(end), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
-				marginRight = textObj.Extent(3)/2;
-				delete(textObj);
-			end
+            marginRight = 0;
+            if ~isempty(cbObj)
+                set(cbObj, 'Units', 'centimeters');
+                [~, idx] = max(cellfun(@length, cbObj.TickLabels));
+                textObj1 = text(0,0, cbObj.TickLabels(idx), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+                textObj2 = text(0,0, cbObj.Label.String, 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+                marginRight = textObj1.Extent(3);
+                marginRight = marginRight + textObj2.Extent(3)/2;
+                delete(textObj1);
+			    delete(textObj2);
+            else
+			    if ~isempty(axesObj.XTickLabel)
+				    textObj = text(0,0, axesObj.XTickLabel(end), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+				    marginRight = textObj.Extent(3)/2;
+				    delete(textObj);
+                end
+            end
 
 			marginTop = 0;
 			if ~isempty(axesObj.YTickLabel)
