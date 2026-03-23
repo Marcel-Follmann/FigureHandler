@@ -194,13 +194,15 @@ classdef Create < handle
 				set(lines(i), 'Linewidth', params.lineWidth);
 				set(lines(i), 'MarkerSize', params.markerSize);
 	
-				if(lines(i).XData(end) == axes.XLim(end))
-					lines(i).MarkerIndices(end) = [];
-				end
-
-				if(lines(i).XData(1) == axes.XLim(1))
-					lines(i).MarkerIndices(1) = [];
-				end
+                if ~isempty(lines(i).XData)
+                    if(lines(i).XData(end) == axes.XLim(end))
+	                    lines(i).MarkerIndices(end) = [];
+                    end
+                    
+                    if(lines(i).XData(1) == axes.XLim(1))
+	                    lines(i).MarkerIndices(1) = [];
+                    end
+                end
 			end
 
 			
@@ -252,6 +254,9 @@ classdef Create < handle
 			for i = 1:numberOfFigures
 				currentFigure = figList(i);
 				currentAxes = findall(currentFigure, "Type", "Axes");
+                if isempty(currentAxes)
+                    currentAxes = findall(currentFigure, "Type", "PolarAxes");
+                end
 				currentParams = paramList(i);
 
 				set(currentFigure,'Units', 'centimeters');
@@ -287,6 +292,15 @@ classdef Create < handle
 			pointInCentimeter = 2.54/72;
 			
 			axesObj = findall(figureObj, 'Type', 'Axes');
+            if isempty(axesObj)
+                axesObj = findall(figureObj, 'Type', 'PolarAxes');
+                margins = [0,0,0,0];
+                textObj1 = text(0,0,"$" +string(axesObj.ThetaTick(1)) + " ^\circ$", 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+                margins(4) = textObj1.Extent(4);
+                margins(2) = textObj1.Extent(4);
+                delete(textObj1);
+                return
+            end
             cbObj = findall(figureObj, 'Type', 'ColorBar');
 			% Compute left & bottom margins from labels
             
