@@ -132,7 +132,11 @@ classdef Create < handle
 				set(currentFigure,'Units', 'normalized');
 				rect = annotation(currentFigure, 'rectangle',[0 0 1 1],'Color','w', 'LineWidth',1);
 
-				exportgraphics(currentFigure, strcat(figurePath,'.pdf'), 'ContentType','vector','BackgroundColor','white');
+                if isempty(findall(currentFigure, "Type", "Image"))
+				    exportgraphics(currentFigure, strcat(figurePath,'.pdf'), 'ContentType','vector','BackgroundColor','white');
+                else
+                    exportgraphics(currentFigure, strcat(figurePath,'.pdf'), 'ContentType','image','BackgroundColor','white', "Resolution",600);
+                end
 			
 				delete(rect);
             end
@@ -147,8 +151,12 @@ classdef Create < handle
 				% Generate Rectangle for propper cropping
 				set(currentFigure,'Units', 'normalized');
 				rect = annotation(currentFigure, 'rectangle',[0 0 1 1],'Color','w', 'LineWidth',1);
-
-				exportgraphics(currentFigure, strcat(figurePath,'.svg'), 'ContentType','vector','BackgroundColor','white');
+                
+                if isempty(findall(currentFigure, "Type", "Image"))
+				    exportgraphics(currentFigure, strcat(figurePath,'.svg'), 'ContentType','vector','BackgroundColor','white');
+                else
+                    exportgraphics(currentFigure, strcat(figurePath,'.svg'), 'ContentType','image','BackgroundColor','white', "Resolution",600);
+                end
 			
 				delete(rect);
 			end
@@ -318,7 +326,8 @@ classdef Create < handle
                 [~, idx] = max(cellfun(@length, cbObj.TickLabels));
                 textObj1 = text(0,0, cbObj.TickLabels(idx), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
                 textObj2 = text(0,0, cbObj.Label.String, 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
-                marginRight = textObj1.Extent(3);
+                % marginRight = cbObj.Position(3);
+                % marginRight = textObj1.Extent(3) + cbObj.Position(3);
                 marginRight = marginRight + textObj2.Extent(4);
                 delete(textObj1);
 			    delete(textObj2);
