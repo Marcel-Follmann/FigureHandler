@@ -192,26 +192,30 @@ classdef Create < handle
 			SetAll(figure, 'AlignVertexCenters', 'on');
 
 			% Set line color & line style
-			lines = findall(figure,'Type', 'Line');
+			
 			axes = findall(figure,'Type', 'Axes');
-			numberOfLines = numel(lines);
-
-			colorList = obj.CreateColorList(numberOfLines);
-			for i = 1:numberOfLines
-				set(lines(i), 'Color', hex2rgb(colorList(i)));
-				set(lines(i), 'Linewidth', params.lineWidth);
-				set(lines(i), 'MarkerSize', params.markerSize);
-	
-                if ~isempty(lines(i).XData)
-                    if(lines(i).XData(end) == axes.XLim(end))
-	                    lines(i).MarkerIndices(end) = [];
+            numberOfAxes = numel(axes);
+            for j = 1:numberOfAxes
+                lines = findall(axes(j),'Type', 'Line');
+                numberOfLines = numel(lines);
+                colorList = obj.CreateColorList(numberOfLines);
+                for i = 1:numberOfLines
+				    set(lines(i), 'Color', hex2rgb(colorList(i)));
+				    set(lines(i), 'Linewidth', params.lineWidth);
+				    set(lines(i), 'MarkerSize', params.markerSize);
+	    
+                    if ~isempty(lines(i).XData)
+                        if(lines(i).XData(end) == axes(j).XLim(end))
+	                        lines(i).MarkerIndices(end) = [];
+                        end
+                        
+                        if(lines(i).XData(1) == axes(j).XLim(1))
+	                        lines(i).MarkerIndices(1) = [];
+                        end
                     end
-                    
-                    if(lines(i).XData(1) == axes.XLim(1))
-	                    lines(i).MarkerIndices(1) = [];
-                    end
-                end
-			end
+			    end
+            end
+			
 
 			
 
@@ -265,6 +269,9 @@ classdef Create < handle
                 if isempty(currentAxes)
                     currentAxes = findall(currentFigure, "Type", "PolarAxes");
                 end
+                if numel(currentAxes) > 1
+                    currentAxes = findall(currentFigure, "Type", "tiledlayout");
+                end
 				currentParams = paramList(i);
 
 				set(currentFigure,'Units', 'centimeters');
@@ -273,6 +280,7 @@ classdef Create < handle
 					currentParams.width, currentParams.height];
 
 				set(currentAxes, 'Units', 'centimeters');
+                
 				currentAxes.InnerPosition = [margins(1), margins(2), ...
 					currentParams.width - margins(1) - margins(3),...
 					currentParams.height - margins(2) - margins(4)];
@@ -312,39 +320,72 @@ classdef Create < handle
             cbObj = findall(figureObj, 'Type', 'ColorBar');
 			% Compute left & bottom margins from labels
             
-			set(axesObj, 'Units','centimeters');
-			set(axesObj.XLabel, 'Units','centimeters');
-			set(axesObj.YLabel, 'Units','centimeters');
-
-			marginLeft = abs(axesObj.YLabel.Extent(1));
-			marginBottom = abs(axesObj.XLabel.Extent(2));
+            boundTop = 0;
+            boundRight = 0;
+            for i = 1:numel(axesObj)
+			    set(axesObj(i), 'Units','centimeters');
+			    set(axesObj(i).XLabel, 'Units','centimeters');
+			    set(axesObj(i).YLabel, 'Units','centimeters');
+                marginLeft = abs(axesObj(i).YLabel.Extent(1));
+			    marginBottom = abs(axesObj(i).XLabel.Extent(2));
+                boundTop = max([boundTop, abs(axesObj(i).Position(2) + axesObj(i).Position(4))]);
+                boundRight = max([boundRight, abs(axesObj(i).Position(1) + axesObj(i).Position(3))]);
+            end
 
 			% Compute right & top margins from ticks
             marginRight = 0;
             if ~isempty(cbObj)
-                set(cbObj, 'Units', 'centimeters');
-                [~, idx] = max(cellfun(@length, cbObj.TickLabels));
-                textObj1 = text(0,0, cbObj.TickLabels(idx), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
-                textObj2 = text(0,0, cbObj.Label.String, 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
-                % marginRight = cbObj.Position(3);
-                % marginRight = textObj1.Extent(3) + cbObj.Position(3);
-                marginRight = marginRight + textObj2.Extent(4);
-                delete(textObj1);
-			    delete(textObj2);
-            else
-			    if ~isempty(axesObj.XTickLabel)
-				    textObj = text(0,0, axesObj.XTickLabel(end), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
-				    marginRight = textObj.Extent(3)/2;
-				    delete(textObj);
+                if ~isempty(cbObj.Layout)
+                    if cbObj.Layout.Tile == "east"
+                        set(cbObj, 'Units', 'centimeters');
+                        [~, idx] = max(cellfun(@length, cbObj.TickLabels));
+                        textObj1 = text(0,0, cbObj.TickLabels(idx), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+                        textObj2 = text(0,0, cbObj.Label.String, 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+                        marginRight = cbObj.Position(1)-boundRight + cbObj.Position(3) + textObj1.Extent(3) + 1.5*textObj2.Extent(4);
+			            delete(textObj1);
+                        delete(textObj2);
+                    else
+                        textObj1 = text(0,0, cbObj.TickLabels(end), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+                        marginRight = textObj1.Extent(3)/2;
+                    end
                 end
+            elseif ~isempty(axesObj.XTickLabel)
+			    textObj = text(0,0, axesObj.XTickLabel(end), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+			    marginRight = textObj.Extent(3)/2;
+			    delete(textObj);
             end
 
 			marginTop = 0;
-			if ~isempty(axesObj.YTickLabel)
-				textObj = text(0,0, axesObj.YTickLabel(end), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
-				marginTop = textObj.Extent(4)/2;
-				delete(textObj);
-			end
+            if ~isempty(cbObj)
+                if ~isempty(cbObj.Layout)
+                    if cbObj.Layout.Tile == "north"
+                        set(cbObj, 'Units', 'centimeters');
+                        [~, idx] = max(cellfun(@length, cbObj.TickLabels));
+                        textObj1 = text(0,0, cbObj.TickLabels(idx), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+                        textObj2 = text(0,0, cbObj.Label.String, 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+                        marginTop = cbObj.Position(2)-boundTop + textObj1.Extent(4) + 1.5*textObj2.Extent(4) + cbObj.Position(4);
+			            delete(textObj1);
+                        delete(textObj2);
+                    else
+                        textObj1 = text(0,0, cbObj.TickLabels(end), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+                        marginTop = textObj1.Extent(4)/2;
+                    end
+                else
+                    set(cbObj, 'Units', 'centimeters');
+                    [~, idx] = max(cellfun(@length, cbObj.TickLabels));
+                    textObj1 = text(0,0, cbObj.TickLabels(idx), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+                    textObj2 = text(0,0, cbObj.Label.String, 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+                    % marginRight = cbObj.Position(3);
+                    % marginRight = textObj1.Extent(3) + cbObj.Position(3);
+                    marginRight = marginRight + textObj2.Extent(4);
+                    delete(textObj1);
+			        delete(textObj2);
+                end
+            elseif ~isempty(axesObj.YTickLabel)
+			    textObj = text(0,0, axesObj.YTickLabel(end), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+			    marginTop = textObj.Extent(4)/2;
+			    delete(textObj);
+            end
 
 			baseline = 3*pointInCentimeter;
 			margins = [marginLeft, marginBottom, marginRight, marginTop] + baseline;
