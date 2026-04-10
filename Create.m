@@ -347,6 +347,7 @@ classdef Create < handle
                     else
                         textObj1 = text(0,0, cbObj.TickLabels(end), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
                         marginRight = textObj1.Extent(3)/2;
+                        delete(textObj1);
                     end
                 end
             elseif ~isempty(axesObj.XTickLabel)
@@ -369,6 +370,7 @@ classdef Create < handle
                     else
                         textObj1 = text(0,0, cbObj.TickLabels(end), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
                         marginTop = textObj1.Extent(4)/2;
+                        delete(textObj1);
                     end
                 else
                     set(cbObj, 'Units', 'centimeters');
