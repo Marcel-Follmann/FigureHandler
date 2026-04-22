@@ -350,10 +350,14 @@ classdef Create < handle
                         delete(textObj1);
                     end
                 end
-            elseif ~isempty(axesObj.XTickLabel)
-			    textObj = text(0,0, axesObj.XTickLabel(end), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
-			    marginRight = textObj.Extent(3)/2;
-			    delete(textObj);
+            else
+                for i = 1:numel(axesObj)
+                    if ~isempty(axesObj(i).XTickLabel)
+			            textObj = text(0,0, axesObj(i).XTickLabel(end), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+			            marginRight = max([marginRight, textObj.Extent(3)/2]);
+			            delete(textObj);
+                    end
+                end
             end
 
 			marginTop = 0;
@@ -383,10 +387,14 @@ classdef Create < handle
                     delete(textObj1);
 			        delete(textObj2);
                 end
-            elseif ~isempty(axesObj.YTickLabel)
-			    textObj = text(0,0, axesObj.YTickLabel(end), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
-			    marginTop = textObj.Extent(4)/2;
-			    delete(textObj);
+            else
+                for i = 1:numel(axesObj)
+                    if ~isempty(axesObj(i).YTickLabel)
+			            textObj = text(0,0, axesObj(i).YTickLabel(end), 'FontSize', params.fontSize, 'FontName',params.font, 'Units','centimeters');
+			            marginTop = max([marginTop, textObj.Extent(4)/2]);
+			            delete(textObj);
+                    end
+                end
             end
 
 			baseline = 3*pointInCentimeter;

@@ -16,9 +16,9 @@ ax2 = nexttile;
 plot(x, y2);
 xlabel("Time (s)");
 ylabel("Amplitude (-)");
-cb = colorbar;
-cb.Layout.Tile = "north";
-xlabel(cb, "Magnitude (dB)");
+% cb = colorbar;
+% cb.Layout.Tile = "north";
+% xlabel(cb, "Magnitude (dB)");
 
 % f = figure("Name", "Test Subplots 2");
 % t = tiledlayout(1, 2);
