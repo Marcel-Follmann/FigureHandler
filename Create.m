@@ -148,7 +148,7 @@ classdef Create < handle
 				figureName = regexprep(regexprep(lower(get(currentFigure,'Name')),' ', '_'),'-','_');
 				figurePath = strcat(obj.savePath,figureName);
 
-				% Generate Rectangle for propper cropping
+				% Generate Rectangle for proper cropping
 				set(currentFigure,'Units', 'normalized');
 				rect = annotation(currentFigure, 'rectangle',[0 0 1 1],'Color','w', 'LineWidth',1);
                 
