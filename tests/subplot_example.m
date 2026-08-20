@@ -1,6 +1,6 @@
 close all; clearvars; clc; 
 
-fh = Create("savePath","tests\");
+fh = Svg("savePath","tests\");
 
 x = linspace(0, 2*pi, 1000);
 y1 = sin(x);
@@ -34,5 +34,5 @@ ylabel("Amplitude (-)");
 % cb.Layout.Tile = "east";
 % xlabel(cb, "Magnitude (dB)");
 
-fh.PreparePdf(f);
+fh.Prepare(f);
 fh.GenerateOutputs();

@@ -1,4 +1,4 @@
-classdef Svg < base
+classdef Svg < FigureBase
     properties
         width = 31.56,
         height = 14.41, 
@@ -11,10 +11,10 @@ classdef Svg < base
     methods
         function obj = Svg(propArgs)
             arguments
-                propArgs.?base
+                propArgs.?FigureBase
             end
             propertyCell = namedargs2cell(propArgs);
-            obj@base(propertyCell{:});
+            obj@FigureBase(propertyCell{:});
         end
     end
 

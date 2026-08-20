@@ -1,4 +1,4 @@
-classdef Emf < base
+classdef Emf < FigureBase
     properties
         width = 31.56,
         height = 14.41, 
@@ -11,10 +11,10 @@ classdef Emf < base
     methods
         function obj = Emf(propArgs)
             arguments
-                propArgs.?base
+                propArgs.?FigureBase
             end
             propertyCell = namedargs2cell(propArgs);
-            obj@base(propertyCell{:});
+            obj@FigureBase(propertyCell{:});
         end
     end
 

@@ -1,4 +1,4 @@
-classdef base < handle
+classdef FigureBase < handle
     %UNTITLED2 Summary of this class goes here
     %   Detailed explanation goes here
 
@@ -15,7 +15,7 @@ classdef base < handle
     end
 
     methods
-        function obj = base(options)
+        function obj = FigureBase(options)
             arguments
 				options.colorList = ["#00934B", "#D37611", "#005287"];
 				options.lineStyleList = ['-x'];
@@ -68,7 +68,7 @@ classdef base < handle
                 set(currentFigure,'Units', 'normalized');
                 rect = annotation(currentFigure, 'rectangle',[0 0 1 1],'Color','w', 'LineWidth',1);
 
-                obj.CreateFile(obj, currentFigure, figurePath)
+                obj.CreateFile(currentFigure, figurePath)
 
                 delete(rect);
             end

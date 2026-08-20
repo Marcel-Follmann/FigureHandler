@@ -1,4 +1,4 @@
-classdef Pdf < base
+classdef Pdf < FigureBase
     properties
         width = 8.8,
         height = 8.8/1.618, 
@@ -11,10 +11,10 @@ classdef Pdf < base
     methods
         function obj = Pdf(propArgs)
             arguments
-                propArgs.?base
+                propArgs.?FigureBase
             end
             propertyCell = namedargs2cell(propArgs);
-            obj@base(propertyCell{:});
+            obj@FigureBase(propertyCell{:});
         end
     end
 
