@@ -11,7 +11,7 @@ classdef Pdf < Figurehandler.FigureBase
     methods
         function obj = Pdf(propArgs)
             arguments
-                propArgs.?FigureBase
+                propArgs.?Figurehandler.FigureBase
             end
             propertyCell = namedargs2cell(propArgs);
             obj@Figurehandler.FigureBase(propertyCell{:});

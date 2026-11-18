@@ -1,4 +1,4 @@
-classdef Emf < FigureBase
+classdef Emf < Figurehandler.FigureBase
     properties
         width = 31.56,
         height = 14.41, 
@@ -11,10 +11,10 @@ classdef Emf < FigureBase
     methods
         function obj = Emf(propArgs)
             arguments
-                propArgs.?FigureBase
+                propArgs.?Figurehandler.FigureBase
             end
             propertyCell = namedargs2cell(propArgs);
-            obj@FigureBase(propertyCell{:});
+            obj@Figurehandler.FigureBase(propertyCell{:});
         end
     end
 

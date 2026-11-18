@@ -1,6 +1,6 @@
 close all; clearvars; clc; 
 
-fh = Create("savePath","tests\");
+fh = Figurehandler.Create("savePath","+Figurehandler\tests\");
 
 x = linspace(0, 2*pi, 1000);
 y = x; 
