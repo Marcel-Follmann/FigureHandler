@@ -1,4 +1,4 @@
-classdef Svg < FigureBase
+classdef Svg < Figurehandler.FigureBase
     properties
         width = 31.56,
         height = 14.41, 
@@ -14,7 +14,7 @@ classdef Svg < FigureBase
                 propArgs.?FigureBase
             end
             propertyCell = namedargs2cell(propArgs);
-            obj@FigureBase(propertyCell{:});
+            obj@Figurehandler.FigureBase(propertyCell{:});
         end
     end
 

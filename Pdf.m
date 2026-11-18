@@ -1,4 +1,4 @@
-classdef Pdf < FigureBase
+classdef Pdf < Figurehandler.FigureBase
     properties
         width = 8.8,
         height = 8.8/1.618, 
@@ -14,7 +14,7 @@ classdef Pdf < FigureBase
                 propArgs.?FigureBase
             end
             propertyCell = namedargs2cell(propArgs);
-            obj@FigureBase(propertyCell{:});
+            obj@Figurehandler.FigureBase(propertyCell{:});
         end
     end
 

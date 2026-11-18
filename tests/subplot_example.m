@@ -1,6 +1,6 @@
 close all; clearvars; clc; 
 
-fh = Svg("savePath","tests\");
+fh = Svg("savePath","FigureHandler\tests");
 
 x = linspace(0, 2*pi, 1000);
 y1 = sin(x);
